@@ -1,0 +1,32 @@
+// https://code.visualstudio.com/docs/cpp/c-cpp-properties-schema-reference
+{
+  "configurations": [
+    {
+      "name": "Mac",
+      "includePath": [
+        "/Users/zanebauman/code/bin/avr-toolchain-3.7.0/lib/gcc/avr/7.3.0/include",
+        "/Users/zanebauman/code/bin/avr-toolchain-3.7.0/lib/gcc/avr/7.3.0/include-fixed",
+        "/Users/zanebauman/code/bin/avr-toolchain-3.7.0/avr/include",
+        "/Users/zanebauman/code/bin/avr-toolchain-3.7.0/libexec/gcc/avr/7.3.0",
+        "/Users/zanebauman/code/bin/avr-toolchain-3.7.0/libexec/gcc",
+        "/Users/zanebauman/code/bin/avr-toolchain-3.7.0/avr/bin",
+        "/Users/zanebauman/code/bin/avr-toolchain-3.7.0/lib/gcc/avr/7.3.0",
+        "/Users/zanebauman/code/bin/avr-toolchain-3.7.0/lib/gcc",
+        "/Users/zanebauman/code/bin/avr-toolchain-3.7.0/avr/lib",
+        "./firmware"
+      ],
+      "defines": [
+        "__AVR_ATtiny85__",
+        "F_CPU=16000000"
+      ],
+      "compilerPath": "/Users/zanebauman/code/bin/avr-toolchain-3.7.0/bin/avr-gcc",
+      "compilerArgs": [
+        "-c",
+        "-std=gnu99"
+      ],
+      "cStandard": "gnu99",
+      "intelliSenseMode": "gcc-x64"
+    }
+  ],
+  "version": 4
+}

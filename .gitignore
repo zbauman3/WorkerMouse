@@ -50,3 +50,10 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Misc
+*.eep
+**/.DS_Store
+*.srec
+*.lst
+projects/**/*.bin

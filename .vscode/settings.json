@@ -1,0 +1,13 @@
+{
+  "files.associations": {
+    "*.ino": "cpp",
+    "*.h": "c",
+    "*.S": "avr",
+    "*.s": "avr",
+    "string": "c",
+    "iosfwd": "c"
+  },
+  "terminal.integrated.env.osx": {
+    "PATH": "PATH=\"$PATH\":/Users/zanebauman/code/bin/avr-toolchain-3.7.0/bin"
+  }
+}
