@@ -1,15 +1,12 @@
-
-
 #include <avr/eeprom.h>
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include <stdlib.h>
 #include <time.h>
+#include <util/atomic.h>
 #include <util/delay.h>
 
-#include "millis.c"
-#include "usbdrv/oddebug.h"
 #include "usbdrv/usbdrv.h"
 
 const PROGMEM char
@@ -19,17 +16,20 @@ const PROGMEM char
         0xa1, 0x01, // COLLECTION (Application)
         0x09, 0x01, //   USAGE (Pointer)
         0xa1, 0x00, //   COLLECTION (Physical)
-        0x05, 0x09, //     USAGE_PAGE (Button)
-        0x19, 0x01, //     USAGE_MINIMUM (Button 1)
-        0x29, 0x03, //     USAGE_MAXIMUM (Button 3)
-        0x15, 0x00, //     LOGICAL_MINIMUM (0)
-        0x25, 0x01, //     LOGICAL_MAXIMUM (1)
-        0x95, 0x03, //     REPORT_COUNT (3)
-        0x75, 0x01, //     REPORT_SIZE (1)
-        0x81, 0x02, //     INPUT (Data,Var,Abs)
-        0x95, 0x01, //     REPORT_COUNT (1)
-        0x75, 0x05, //     REPORT_SIZE (5)
-        0x81, 0x03, //     INPUT (Cnst,Var,Abs)
+        // Not using the buttons for anything. But if needed, they can be added
+        // back, then update USB_CFG_HID_REPORT_DESCRIPTOR_LENGTH and make sure
+        // reportBuffer is 3 bytes long, with the buttons' presses first
+        // 0x05, 0x09, //     USAGE_PAGE (Button)
+        // 0x19, 0x01, //     USAGE_MINIMUM (Button 1)
+        // 0x29, 0x03, //     USAGE_MAXIMUM (Button 3)
+        // 0x15, 0x00, //     LOGICAL_MINIMUM (0)
+        // 0x25, 0x01, //     LOGICAL_MAXIMUM (1)
+        // 0x95, 0x03, //     REPORT_COUNT (3)
+        // 0x75, 0x01, //     REPORT_SIZE (1)
+        // 0x81, 0x02, //     INPUT (Data, Variable, Absolute)
+        // 0x95, 0x01, //     REPORT_COUNT (1)
+        // 0x75, 0x05, //     REPORT_SIZE (5)
+        // 0x81, 0x03, //     INPUT (Constant)
         0x05, 0x01, //     USAGE_PAGE (Generic Desktop)
         0x09, 0x30, //     USAGE (X)
         0x09, 0x31, //     USAGE (Y)
@@ -37,78 +37,126 @@ const PROGMEM char
         0x25, 0x7f, //     LOGICAL_MAXIMUM (127)
         0x75, 0x08, //     REPORT_SIZE (8)
         0x95, 0x02, //     REPORT_COUNT (2)
-        0x81, 0x06, //     INPUT (Data,Var,Rel)
+        0x81, 0x06, //     INPUT (Data, Variable, Relative)
         0xc0,       //   END_COLLECTION
         0xc0        // END_COLLECTION
 };
 
-static uchar reportBuffer[3];
+static uchar reportBuffer[2];
+volatile unsigned long timer0_millis = 0;
+static unsigned long lastMillis = 0;
+static unsigned long millisDelay = 1000;
+static int16_t toX = 0;
+static int16_t toY = 0;
+static int16_t currentX = 0;
+static int16_t currentY = 0;
+static int8_t speedX = 10;
+static int8_t speedY = 10;
 
-uchar usbFunctionSetup(uchar data[8]) {
-  usbRequest_t *rq = (void *)data;
+// increment the millis counter
+ISR(TIMER0_COMPA_vect) { timer0_millis++; }
 
-  usbMsgPtr = reportBuffer;
-  if ((rq->bmRequestType & USBRQ_TYPE_MASK) == USBRQ_TYPE_CLASS) {
-    if (rq->bRequest == USBRQ_HID_GET_REPORT) {
-      return sizeof(reportBuffer);
-    }
-  } else {
-    /* no vendor specific requests implemented */
-  }
-  return 0;
+// no op. Just using usbInterruptIsReady and usbSetInterrupt in the main loop
+uchar usbFunctionSetup(uchar data[8]) { return 0; }
+
+unsigned long millis(void) {
+  unsigned long millis_return;
+  ATOMIC_BLOCK(ATOMIC_FORCEON) { millis_return = timer0_millis; }
+  return millis_return;
 }
 
-void usbEventResetReady(void) {}
+int8_t randBetweenInt8(int8_t min, int8_t max) {
+  return rand() % (max + 1 - min) + min;
+}
 
-static unsigned long lastMillis = 0;
-
-uint8_t shouldMove() {
-  unsigned long nowMillis = millis();
-
-  if (nowMillis - lastMillis >= 1000) {
-    lastMillis = nowMillis;
+uint8_t hasData() {
+  if (currentX != toX || currentY != toY) {
     return 1;
   }
 
-  return 0;
+  unsigned long nowMillis = millis();
+
+  if (lastMillis == 0) {
+    lastMillis = nowMillis;
+    // random between 1000 and 7000
+    millisDelay = rand() % (7000 + 1 - 1000) + 1000;
+    return 0;
+  }
+
+  if (nowMillis - lastMillis < millisDelay) {
+    return 0;
+  }
+
+  lastMillis = 0;
+
+  toX = randBetweenInt8(-125, 125);
+  toY = randBetweenInt8(-125, 125);
+  speedX = randBetweenInt8(1, 30);
+  speedY = randBetweenInt8(1, 30);
+
+  return 1;
+}
+
+int8_t getMoveAmnt(int8_t cur, int8_t to, int8_t speed) {
+  if (to < cur) {
+    if (cur - to < speed) {
+      return -(cur - to);
+    }
+    return -speed;
+  } else {
+    if (to - cur < speed) {
+      return (to - cur);
+    }
+    return speed;
+  }
+}
+
+void buildReport() {
+  reportBuffer[0] = 0;
+  reportBuffer[1] = 0;
+
+  if (currentX != toX) {
+    int8_t moveX = getMoveAmnt(currentX, toX, speedX);
+    reportBuffer[0] = moveX;
+    currentX += moveX;
+  }
+
+  if (currentY != toY) {
+    int8_t moveY = getMoveAmnt(currentY, toY, speedY);
+    reportBuffer[1] = moveY;
+    currentY += moveY;
+  }
+}
+
+void loop() {
+  if (usbInterruptIsReady() && hasData() == 1) {
+    buildReport();
+    usbSetInterrupt(reportBuffer, sizeof(reportBuffer));
+  }
 }
 
 int main(void) {
   srand(time(NULL));
 
+  // setup the timer for the `millis` function
+  // 16MHz, every 250 clock cycles, prescaled by 64.
+  // 16,000,000/(250 × 64) = CTC at 1000Hz
+  OCR0A = 249;                        // 250 clock cycles, counting 0
+  TCCR0A = (1 << WGM01);              // CTC
+  TCCR0B = (1 << CS01) | (1 << CS00); // clk/64
+  TIMSK = (1 << OCIE0A);              // interrupt on OCR0A match
+
   usbDeviceDisconnect();
-  _delay_ms(300);
+  _delay_ms(150);
   usbDeviceConnect();
 
   usbInit();
-  init_millis();
   sei();
+
   for (;;) {
     usbPoll();
-    if (usbInterruptIsReady()) {
-
-      reportBuffer[0] = 0;
-      reportBuffer[1] = 0;
-      reportBuffer[2] = 0;
-
-      if (shouldMove() == 1) {
-        int rand2 = rand() % 2;
-
-        if (rand() % 2 == 0) {
-          reportBuffer[1] = (char)rand();
-          if (rand2 == 0) {
-            reportBuffer[1] = -reportBuffer[1];
-          }
-        } else {
-          reportBuffer[2] = (char)rand();
-          if (rand2 == 0) {
-            reportBuffer[2] = -reportBuffer[2];
-          }
-        }
-      }
-
-      usbSetInterrupt(reportBuffer, sizeof(reportBuffer));
-    }
+    loop();
   }
+
   return 0;
 }
