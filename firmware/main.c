@@ -78,8 +78,8 @@ uint8_t hasData() {
 
   if (lastMillis == 0) {
     lastMillis = nowMillis;
-    // random between 1000 and 7000
-    millisDelay = rand() % (7000 + 1 - 1000) + 1000;
+    // random between 100 and 7000
+    millisDelay = rand() % (7000 + 1 - 100) + 100;
     return 0;
   }
 
