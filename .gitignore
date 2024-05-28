@@ -58,3 +58,4 @@ dkms.conf
 *.lst
 *.bin
 projects/**/*.bin
+hardware/WorkerMouse-backups
