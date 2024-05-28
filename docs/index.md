@@ -4,4 +4,6 @@ An AVR project for a simple DIY mouse jiggler. This uses an ATTINY85, a 16MHz cr
 
 ## Site Index
 
-- COMING SOON
+- [Parts List](./parts-list.md)
+- [Schema](./schema.md)
+- [Media](./media.md)
