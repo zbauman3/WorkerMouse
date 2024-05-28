@@ -97,7 +97,7 @@ uint8_t hasData() {
   return 1;
 }
 
-int8_t getMoveAmnt(int8_t cur, int8_t to, int8_t speed) {
+int8_t getMoveAmnt(int16_t cur, int16_t to, int8_t speed) {
   if (to < cur) {
     if (cur - to < speed) {
       return -(cur - to);
