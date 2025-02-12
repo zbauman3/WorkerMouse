@@ -3,6 +3,7 @@
 
 # Object files
 *.o
+!firmware/compiled/*.o
 *.ko
 *.obj
 *.elf
@@ -35,6 +36,7 @@
 *.i*86
 *.x86_64
 *.hex
+!firmware/compiled/*.hex
 
 # Debug files
 *.dSYM/
@@ -57,5 +59,6 @@ dkms.conf
 *.srec
 *.lst
 *.bin
+!firmware/compiled/*.bin
 projects/**/*.bin
 hardware/WorkerMouse-backups
