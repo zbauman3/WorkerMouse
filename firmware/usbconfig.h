@@ -75,7 +75,7 @@
 /* Define this to 1 if the device has its own power supply. Set it to 0 if the
  * device is powered from the USB bus.
  */
-#define USB_CFG_MAX_BUS_POWER 50
+#define USB_CFG_MAX_BUS_POWER 98
 /* Set this variable to the maximum USB bus power consumption of your device.
  * The value is in milliamperes. [It will be divided by two since USB
  * communicates power requirements in units of 2 mA.]
@@ -121,14 +121,14 @@ extern void usbEventResetReady(void);
 
 /* -------------------------- Device Description --------------------------- */
 
-#define USB_CFG_VENDOR_ID 0x09, 0x12
+#define USB_CFG_VENDOR_ID 0x61, 0x04
 /* USB vendor ID for the device, low byte first. If you have registered your
  * own Vendor ID, define it here. Otherwise you use obdev's free shared
  * VID/PID pair. Be sure to read USBID-License.txt for rules!
  * This template uses obdev's shared VID/PID pair for HIDs: 0x16c0/0x5df.
  * Use this VID/PID pair ONLY if you understand the implications!
  */
-#define USB_CFG_DEVICE_ID 0x80, 0xF4
+#define USB_CFG_DEVICE_ID 0x81, 0x4d
 /* This is the ID of the product, low byte first. It is interpreted in the
  * scope of the vendor ID. If you have registered your own VID with usb.org
  * or if you have licensed a PID from somebody else, define it here. Otherwise
@@ -137,11 +137,12 @@ extern void usbEventResetReady(void);
  * This template uses obdev's shared VID/PID pair for HIDs: 0x16c0/0x5df.
  * Use this VID/PID pair ONLY if you understand the implications!
  */
-#define USB_CFG_DEVICE_VERSION 0x00, 0x01
+#define USB_CFG_DEVICE_VERSION 0x00, 0x02
 /* Version number of the device: Minor number first, then major number.
  */
-#define USB_CFG_VENDOR_NAME 'z', 'b', 'a', 'u', 'm', 'a', 'n', '3'
-#define USB_CFG_VENDOR_NAME_LEN 8
+#define USB_CFG_VENDOR_NAME \
+  'P', 'r', 'i', 'm', 'a', 'x', ' ', 'E', 'l', 'e', 'c', 't', 'r', 'o', 'n', 'i', 'c', 's'
+#define USB_CFG_VENDOR_NAME_LEN 18
 /* These two values define the vendor name returned by the USB device. The name
  * must be given as a list of characters under single quotes. The characters
  * are interpreted as Unicode (UTF-16) entities.
@@ -151,8 +152,8 @@ extern void usbEventResetReady(void);
  * details.
  */
 #define USB_CFG_DEVICE_NAME                                                    \
-  'W', 'o', 'r', 'k', 'e', 'r', 'M', 'o', 'u', 's', 'e'
-#define USB_CFG_DEVICE_NAME_LEN 11
+  'U', 'S', 'B', ' ', 'O', 'p', 't', 'i', 'c', 'a', 'l', ' ', 'M', 'o', 'u', 's', 'e'
+#define USB_CFG_DEVICE_NAME_LEN 17
 /* Same as above for the device name. If you don't want a device name, undefine
  * the macros. See the file USBID-License.txt before you assign a name if you
  * use a shared VID/PID.

@@ -1,5 +1,0 @@
-markdown: GFM
-kramdown:
-  input: GFM
-
-theme: jekyll-theme-cayman
